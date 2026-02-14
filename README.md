@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Padel Scoreboard
+
+A professional padel/tennis scoreboard application built with Next.js and Tailwind CSS, designed for OBS broadcasting.
+
+## Features
+
+- **Padel Doubles Scoring**: Full support for doubles matches with 2 players per team
+- **Configurable Match Format**: Set best-of-N sets (3, 5, etc.)
+- **Customizable Teams**: Configure team names, player names, and team colors (hex codes)
+- **Serving Indicator**: Track which team and player is serving
+- **Two View Modes**:
+  - **Standard View**: Full-featured scoreboard with detailed information
+  - **Compact View**: Broadcast-style vertical layout optimized for OBS overlays
+- **Complete Scoring Logic**: Tennis-style point progression (0, 15, 30, 40, Ad, Game)
+- **Set & Match Tracking**: Automatic set and match win detection
+- **Undo Functionality**: Step back through scoring history
+- **OBS Ready**: Designed to be cropped and used as a browser source in OBS
 
 ## Getting Started
 
-First, run the development server:
+### Development
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Deployment
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+This app is ready to deploy to Vercel (free tier available):
 
-## Learn More
+1. Push your code to GitHub
+2. Import your repository on [Vercel](https://vercel.com)
+3. Deploy with zero configuration
 
-To learn more about Next.js, take a look at the following resources:
+See deployment instructions below for detailed steps.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Usage
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. **Configure Match**: Set best-of-N sets, games per set, and tie-break rules
+2. **Set Teams**: Enter team names, player names, and team colors
+3. **Start Scoring**: Use "Point Team A" / "Point Team B" buttons to score
+4. **Toggle Compact View**: Switch to compact view for OBS broadcasting
+5. **OBS Setup**: Add as Browser Source and crop to show only the scoreboard area
 
-## Deploy on Vercel
+## Tech Stack
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Next.js 16 (App Router)
+- React 19
+- TypeScript
+- Tailwind CSS 4
