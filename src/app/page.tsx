@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { TeamColorPicker } from "@/components/TeamColorPicker";
 
 type Side = "A" | "B";
 type Point = "0" | "15" | "30" | "40" | "Ad" | "Game";
@@ -186,6 +187,9 @@ export default function Home() {
     useState<TeamColors>(defaultTeamColors);
   const [server, setServer] = useState<Side>("A");
   const [servingPlayerIndex, setServingPlayerIndex] = useState<0 | 1>(0);
+  const [serveIdentifierStyle, setServeIdentifierStyle] = useState<
+    "player" | "team"
+  >("player");
   const [isCompactView, setIsCompactView] = useState(false);
 
   const currentSet = match.sets[match.currentSetIndex];
@@ -334,116 +338,179 @@ export default function Home() {
       {/* Top: scoreboard for OBS */}
       <div className="flex w-full justify-center border-b border-zinc-800 bg-gradient-to-r from-zinc-900 via-zinc-950 to-zinc-900 px-4 py-3">
         {isCompactView ? (
-          /* Compact scoreboard view - vertical two-row layout */
-          <div className="flex w-full max-w-5xl flex-col rounded-xl border border-zinc-800/80 bg-zinc-950/80 shadow-[0_0_40px_rgba(0,0,0,0.6)] backdrop-blur-md overflow-hidden">
+          /* Compact scoreboard view - fixed width: always bestOfSets columns, upcoming sets are transparent placeholders */
+          <div
+            className="w-fit rounded-xl border border-zinc-800/80 bg-zinc-950/80 shadow-[0_0_40px_rgba(0,0,0,0.6)] backdrop-blur-md overflow-hidden"
+            style={{
+              display: "grid",
+              gridTemplateColumns: `4rem auto ${Array(config.bestOfSets).fill("3rem").join(" ")} 4rem`,
+              gridTemplateRows: "3rem 3rem",
+            }}
+          >
             {(() => {
-              // Determine leading team for row ordering
               const totalSetsA = match.sets
                 .slice(0, match.currentSetIndex)
                 .reduce((sum, s) => sum + (s.A > s.B ? 1 : 0), 0);
               const totalSetsB = match.sets
                 .slice(0, match.currentSetIndex)
                 .reduce((sum, s) => sum + (s.B > s.A ? 1 : 0), 0);
-              
-              const isALeading = totalSetsA > totalSetsB || 
+              const isALeading =
+                totalSetsA > totalSetsB ||
                 (totalSetsA === totalSetsB && (currentSet?.A ?? 0) >= (currentSet?.B ?? 0));
               const topTeam = isALeading ? "A" : "B";
               const bottomTeam = isALeading ? "B" : "A";
-              
+
               return (
                 <>
-                  {/* Top row - Leading team */}
-                  <div className="flex items-center border-b border-zinc-800/50 bg-black/30">
-                    {/* Flag/Color indicator */}
+                  {/* Row 1 - Leading team */}
+                  <div
+                    className="col-span-1 row-span-1 flex h-12 items-center border-b border-zinc-800/50 bg-black/30"
+                    style={{ gridColumn: 1 }}
+                  >
                     <div
-                      className="h-12 w-16 shrink-0"
+                      className="h-full w-full"
                       style={{ backgroundColor: teamColors[topTeam] }}
                     />
-                    
-                    {/* Player names */}
-                    <div className="flex min-w-0 flex-1 items-center px-3 py-2">
-                      <span className="truncate text-sm font-bold uppercase tracking-wide text-zinc-50">
-                        {server === topTeam && servingPlayerIndex === 0 ? (
+                  </div>
+                  <div
+                    className="col-span-1 flex h-12 items-center border-b border-zinc-800/50 bg-black/30 px-3"
+                    style={{ gridColumn: 2 }}
+                  >
+                    <span className="whitespace-nowrap text-sm font-bold uppercase tracking-wide text-zinc-50">
+                      {serveIdentifierStyle === "player" ? (
+                        server === topTeam && servingPlayerIndex === 0 ? (
                           <>
-                            {teams[topTeam].players[0].name.toUpperCase()} <span className="text-red-500">●</span> / {teams[topTeam].players[1].name.toUpperCase()}
+                            {teams[topTeam].players[0].name.toUpperCase()}{" "}
+                            <span className="text-red-500">●</span> /{" "}
+                            {teams[topTeam].players[1].name.toUpperCase()}
                           </>
                         ) : server === topTeam && servingPlayerIndex === 1 ? (
                           <>
-                            {teams[topTeam].players[0].name.toUpperCase()} / <span className="text-red-500">●</span> {teams[topTeam].players[1].name.toUpperCase()}
+                            {teams[topTeam].players[0].name.toUpperCase()} /{" "}
+                            {teams[topTeam].players[1].name.toUpperCase()}{" "}
+                            <span className="text-red-500">●</span>
                           </>
                         ) : (
                           <>
-                            {teams[topTeam].players[0].name.toUpperCase()} / {teams[topTeam].players[1].name.toUpperCase()}
+                            {teams[topTeam].players[0].name.toUpperCase()} /{" "}
+                            {teams[topTeam].players[1].name.toUpperCase()}
                           </>
-                        )}
-                      </span>
-                    </div>
-                    
-                    {/* Set columns - one for each set */}
-                    {match.sets.map((set, idx) => (
-                      <div
-                        key={idx}
-                        className="flex h-12 w-12 items-center justify-center bg-[#1e3a5f] border-l border-r border-zinc-800/50"
-                      >
-                        <span className="text-lg font-bold tabular-nums text-zinc-50">
-                          {topTeam === "A" ? set.A : set.B}
-                        </span>
-                      </div>
-                    ))}
-                    
-                    {/* Point score column */}
-                    <div className="flex h-12 w-16 items-center justify-center bg-[#c2410c]">
-                      <span className="text-lg font-bold tabular-nums text-white">
-                        {topTeam === "A" ? match.currentGame.A : match.currentGame.B}
-                      </span>
-                    </div>
+                        )
+                      ) : (
+                        <>
+                          {teams[topTeam].players[0].name.toUpperCase()} /{" "}
+                          {teams[topTeam].players[1].name.toUpperCase()}
+                          {server === topTeam && (
+                            <>
+                              {" "}
+                              <span className="text-red-500">●</span>
+                            </>
+                          )}
+                        </>
+                      )}
+                    </span>
                   </div>
-                  
-                  {/* Bottom row - Trailing team */}
-                  <div className="flex items-center bg-black/20">
-                    {/* Flag/Color indicator */}
+                  {Array.from({ length: config.bestOfSets }, (_, col) => {
+                    // Rightmost column = current set; finished sets fill left to right (oldest left)
+                    const setIndex = match.currentSetIndex + col - config.bestOfSets + 1;
+                    const set = setIndex >= 0 && setIndex < match.sets.length ? match.sets[setIndex] : undefined;
+                    const isPlaceholder = set === undefined;
+                    return (
+                      <div
+                        key={col}
+                        className={`flex h-12 w-12 shrink-0 items-center justify-center ${isPlaceholder ? "border-transparent bg-transparent" : "border-b border-l border-r border-zinc-800/50 bg-[#1e3a5f]"}`}
+                        style={{ gridColumn: 3 + col }}
+                      >
+                        {!isPlaceholder && (
+                          <span className="text-lg font-bold tabular-nums text-zinc-50">
+                            {topTeam === "A" ? set.A : set.B}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                  <div
+                    className="flex h-12 items-center justify-center border-b border-zinc-800/50 bg-[#c2410c]"
+                    style={{ gridColumn: 3 + config.bestOfSets }}
+                  >
+                    <span className="text-lg font-bold tabular-nums text-white">
+                      {topTeam === "A" ? match.currentGame.A : match.currentGame.B}
+                    </span>
+                  </div>
+
+                  {/* Row 2 - Trailing team */}
+                  <div
+                    className="flex h-12 items-center bg-black/20"
+                    style={{ gridColumn: 1, gridRow: 2 }}
+                  >
                     <div
-                      className="h-12 w-16 shrink-0"
+                      className="h-full w-full"
                       style={{ backgroundColor: teamColors[bottomTeam] }}
                     />
-                    
-                    {/* Player names */}
-                    <div className="flex min-w-0 flex-1 items-center px-3 py-2">
-                      <span className="truncate text-sm font-bold uppercase tracking-wide text-zinc-50">
-                        {server === bottomTeam && servingPlayerIndex === 0 ? (
+                  </div>
+                  <div
+                    className="flex h-12 items-center bg-black/20 px-3"
+                    style={{ gridColumn: 2, gridRow: 2 }}
+                  >
+                    <span className="whitespace-nowrap text-sm font-bold uppercase tracking-wide text-zinc-50">
+                      {serveIdentifierStyle === "player" ? (
+                        server === bottomTeam && servingPlayerIndex === 0 ? (
                           <>
-                            {teams[bottomTeam].players[0].name.toUpperCase()} <span className="text-red-500">●</span> / {teams[bottomTeam].players[1].name.toUpperCase()}
+                            {teams[bottomTeam].players[0].name.toUpperCase()}{" "}
+                            <span className="text-red-500">●</span> /{" "}
+                            {teams[bottomTeam].players[1].name.toUpperCase()}
                           </>
                         ) : server === bottomTeam && servingPlayerIndex === 1 ? (
                           <>
-                            {teams[bottomTeam].players[0].name.toUpperCase()} / <span className="text-red-500">●</span> {teams[bottomTeam].players[1].name.toUpperCase()}
+                            {teams[bottomTeam].players[0].name.toUpperCase()} /{" "}
+                            {teams[bottomTeam].players[1].name.toUpperCase()}{" "}
+                            <span className="text-red-500">●</span>
                           </>
                         ) : (
                           <>
-                            {teams[bottomTeam].players[0].name.toUpperCase()} / {teams[bottomTeam].players[1].name.toUpperCase()}
+                            {teams[bottomTeam].players[0].name.toUpperCase()} /{" "}
+                            {teams[bottomTeam].players[1].name.toUpperCase()}
                           </>
-                        )}
-                      </span>
-                    </div>
-                    
-                    {/* Set columns - one for each set */}
-                    {match.sets.map((set, idx) => (
+                        )
+                      ) : (
+                        <>
+                          {teams[bottomTeam].players[0].name.toUpperCase()} /{" "}
+                          {teams[bottomTeam].players[1].name.toUpperCase()}
+                          {server === bottomTeam && (
+                            <>
+                              {" "}
+                              <span className="text-red-500">●</span>
+                            </>
+                          )}
+                        </>
+                      )}
+                    </span>
+                  </div>
+                  {Array.from({ length: config.bestOfSets }, (_, col) => {
+                    const setIndex = match.currentSetIndex + col - config.bestOfSets + 1;
+                    const set = setIndex >= 0 && setIndex < match.sets.length ? match.sets[setIndex] : undefined;
+                    const isPlaceholder = set === undefined;
+                    return (
                       <div
-                        key={idx}
-                        className="flex h-12 w-12 items-center justify-center bg-[#1e3a5f] border-l border-r border-zinc-800/50"
+                        key={col}
+                        className={`flex h-12 w-12 shrink-0 items-center justify-center ${isPlaceholder ? "border-transparent bg-transparent" : "border-l border-r border-zinc-800/50 bg-[#1e3a5f]"}`}
+                        style={{ gridColumn: 3 + col, gridRow: 2 }}
                       >
-                        <span className="text-lg font-bold tabular-nums text-zinc-50">
-                          {bottomTeam === "A" ? set.A : set.B}
-                        </span>
+                        {!isPlaceholder && (
+                          <span className="text-lg font-bold tabular-nums text-zinc-50">
+                            {bottomTeam === "A" ? set.A : set.B}
+                          </span>
+                        )}
                       </div>
-                    ))}
-                    
-                    {/* Point score column */}
-                    <div className="flex h-12 w-16 items-center justify-center bg-[#c2410c]">
-                      <span className="text-lg font-bold tabular-nums text-white">
-                        {bottomTeam === "A" ? match.currentGame.A : match.currentGame.B}
-                      </span>
-                    </div>
+                    );
+                  })}
+                  <div
+                    className="flex h-12 items-center justify-center bg-[#c2410c]"
+                    style={{ gridColumn: 3 + config.bestOfSets, gridRow: 2 }}
+                  >
+                    <span className="text-lg font-bold tabular-nums text-white">
+                      {bottomTeam === "A" ? match.currentGame.A : match.currentGame.B}
+                    </span>
                   </div>
                 </>
               );
@@ -478,7 +545,9 @@ export default function Home() {
                         color: teamColors.A,
                       }}
                     >
-                      Serve
+                      {serveIdentifierStyle === "team"
+                        ? "Serve"
+                        : `Serve (${teams.A.players[servingPlayerIndex].name})`}
                     </span>
                   )}
                 </div>
@@ -566,7 +635,9 @@ export default function Home() {
                         color: teamColors.B,
                       }}
                     >
-                      Serve
+                      {serveIdentifierStyle === "team"
+                        ? "Serve"
+                        : `Serve (${teams.B.players[servingPlayerIndex].name})`}
                     </span>
                   )}
                   {match.winner === "B" && (
@@ -760,28 +831,16 @@ export default function Home() {
                 <div className="pt-1">
                   <label className="flex flex-col gap-1 text-xs">
                     <span className="font-medium text-zinc-400">
-                      Team A color (hex)
+                      Team A color
                     </span>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        value={teamColors.A}
-                        onChange={(e) =>
-                          handleTeamColorChange("A", e.target.value)
-                        }
-                        placeholder="#22c55e"
-                        className="flex-1 rounded-md border border-zinc-700 bg-zinc-900 px-2 py-1 text-xs text-zinc-50 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
-                      />
-                      <div
-                        className="h-6 w-6 rounded-md border border-zinc-700"
-                        style={{ backgroundColor: teamColors.A }}
-                      />
-                    </div>
-                    {!isValidHexColor(normalizeHex(teamColors.A)) && (
-                      <span className="text-[11px] text-amber-300">
-                        Enter a valid hex code like #22c55e or 22c55e.
-                      </span>
-                    )}
+                    <TeamColorPicker
+                      value={teamColors.A}
+                      onChange={(color) => handleTeamColorChange("A", color)}
+                      placeholder="#22c55e"
+                      invalid={
+                        !isValidHexColor(normalizeHex(teamColors.A))
+                      }
+                    />
                   </label>
                 </div>
               </div>
@@ -821,28 +880,16 @@ export default function Home() {
                 <div className="pt-1">
                   <label className="flex flex-col gap-1 text-xs">
                     <span className="font-medium text-zinc-400">
-                      Team B color (hex)
+                      Team B color
                     </span>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        value={teamColors.B}
-                        onChange={(e) =>
-                          handleTeamColorChange("B", e.target.value)
-                        }
-                        placeholder="#0ea5e9"
-                        className="flex-1 rounded-md border border-zinc-700 bg-zinc-900 px-2 py-1 text-xs text-zinc-50 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500"
-                      />
-                      <div
-                        className="h-6 w-6 rounded-md border border-zinc-700"
-                        style={{ backgroundColor: teamColors.B }}
-                      />
-                    </div>
-                    {!isValidHexColor(normalizeHex(teamColors.B)) && (
-                      <span className="text-[11px] text-amber-300">
-                        Enter a valid hex code like #0ea5e9 or 0ea5e9.
-                      </span>
-                    )}
+                    <TeamColorPicker
+                      value={teamColors.B}
+                      onChange={(color) => handleTeamColorChange("B", color)}
+                      placeholder="#0ea5e9"
+                      invalid={
+                        !isValidHexColor(normalizeHex(teamColors.B))
+                      }
+                    />
                   </label>
                 </div>
               </div>
@@ -850,6 +897,41 @@ export default function Home() {
 
             <div className="mt-3 space-y-2 text-sm">
               <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-zinc-400">
+                  Serve identifier
+                </span>
+                <div className="inline-flex rounded-full border border-zinc-700 bg-zinc-900 p-0.5 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setServeIdentifierStyle("player")}
+                    className={`rounded-full px-2 py-0.5 font-semibold ${
+                      serveIdentifierStyle === "player"
+                        ? "bg-zinc-100 text-zinc-900"
+                        : "text-zinc-300"
+                    }`}
+                  >
+                    Player
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setServeIdentifierStyle("team")}
+                    className={`rounded-full px-2 py-0.5 font-semibold ${
+                      serveIdentifierStyle === "team"
+                        ? "bg-zinc-100 text-zinc-900"
+                        : "text-zinc-300"
+                    }`}
+                  >
+                    Team
+                  </button>
+                </div>
+              </div>
+              <div className="text-xs text-zinc-500">
+                {serveIdentifierStyle === "player"
+                  ? "Shows which player is serving (dot next to name)."
+                  : "Shows only which team is serving."}
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
                 <span className="text-xs font-medium text-zinc-400">
                   Serving team
                 </span>
@@ -910,8 +992,8 @@ export default function Home() {
               </div>
 
               <div className="text-xs text-zinc-500">
-                Serving player is not shown in the main bar by default, but
-                you can mention it to commentators.
+                Serving player affects who serves next; visible on scoreboard
+                only when identifier is &quot;Player&quot;.
               </div>
             </div>
           </section>

@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@uiw/react-color-wheel": "^2.9.5",
     "next": "16.1.6",
     "react": "19.2.3",
     "react-dom": "19.2.3"
